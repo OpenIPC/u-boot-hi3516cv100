@@ -189,6 +189,7 @@ COBJS-$(CONFIG_DDR_TRAINING_V300) += cmd_ddr_training_v300.o
 COBJS-$(CONFIG_DDR_TRAINING_HI3535)  += hi3535_ddr_training_printf.o
 COBJS-$(CONFIG_DDR_TRAINING_HI3516A)  += hi3516a_ddr_training_printf.o
 COBJS-$(CONFIG_DDR_TRAINING_V2) += cmd_ddr_training_v2.o
+COBJS-$(CONFIG_CMD_GPIO)  += cmd_gpio.o
 
 ifeq ($(CONFIG_AUDIO_ENABLE), y)
 ifeq ($(CONFIG_PRODUCTNAME), "hi3516a")
