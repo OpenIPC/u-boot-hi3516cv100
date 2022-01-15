@@ -216,7 +216,7 @@ struct gpio_mux_def gpio_mux[12][8] = { // 3516Cv100
 
 int gpio_set_mode (int gpio,gpio_mode mode) {
 	int pin = gpio % 10;
-	int bank = gpio / 10;
+	int bank = gpio / 8;
 	if (pin > 7 || bank > 8)
 		return -1;
 	writel ((mode==GPIO_MODE_ALT)?gpio_mux[bank][pin].alt_val:gpio_mux[bank][pin].gpio_val,HI3518_MUX_BASE + gpio_mux[bank][pin].mux_reg);
@@ -230,7 +230,7 @@ int gpio_set_mode (int gpio,gpio_mode mode) {
 
 int gpio_get_mode (int gpio,gpio_mode *mode) {
     int pin = gpio % 10;
-    int bank = gpio / 10;
+    int bank = gpio / 8;
     if (pin > 7 || bank > 8 || !mode)
         return -1;
     if (readl (HI3518_MUX_BASE + gpio_mux[bank][pin].mux_reg) != gpio_mux[bank][pin].gpio_val) {
@@ -243,15 +243,16 @@ int gpio_get_mode (int gpio,gpio_mode *mode) {
 
 int gpio_set (int gpio,int value) {
 	int pin = gpio % 10;
-	int bank = gpio / 10;
+	int bank = gpio / 8;
 	if (pin > 7 || bank > 8)
 		return -1;
+	printf("pin: %d bank: %d reg: %x | pos: %x val: %x  \n",pin,bank,HI3518_GPIO_DATA(bank),HI3518_GPIO_DATA(bank) + (1<<pin)*4, value<<pin);
 	return writel (value<<pin,HI3518_GPIO_DATA(bank) + (1<<pin)*4);
 }
 
 int gpio_get (int gpio) {
 	int pin = gpio % 10;
-	int bank = gpio / 10;
+	int bank = gpio / 8;
 	if (pin > 7 || bank > 8)
 		return -1;
 	return (readl (HI3518_GPIO_DATA (bank) + (1<<pin)*4) & (1<<pin))?1:0;
