@@ -102,23 +102,43 @@ int board_init(void)
 }
 
 void detect_memory(void) {
-       ulong tested_ram = get_ram_size((long *)CFG_DDR_PHYS_OFFSET, CFG_DDR_SIZE)
-               / 1024 / 1024;
-       printf("Detected RAM size: %dMB\n", tested_ram);
+  ulong tested_ram =
+      get_ram_size((long *)CFG_DDR_PHYS_OFFSET, CFG_DDR_SIZE) / 1024 / 1024;
+  printf("Detected RAM size: %dMB\n", tested_ram);
 
-       char msize[128];
-       sprintf(msize, "%dM", tested_ram);
-       setenv("totalmem", msize);
+  char msize[128];
+  sprintf(msize, "%dM", tested_ram);
+  setenv("totalmem", msize);
+}
+
+void do_phy_init(void) {
+  char *mdio_intf = NULL;
+
+  mdio_intf = getenv("mdio_intf");
+  if (mdio_intf) {
+	printf("PHY Init... ");
+    if (!strncmp(mdio_intf, "mii", 3)) {
+      writel(0x1, 0x200f005c); // 25 MHz RMII
+      writel(0x0, 0x200f0070); // GPIO 1_3 PHYRST on XM boards
+      writel(0x2, 0x200300cc); // MII mode
+	  printf("mii\n");
+    } else if (!strncmp(mdio_intf, "rmii", 4)) {
+      writel(0x3, 0x200f005c); // 50 MHz RMII
+      writel(0x0, 0x200f0070); // GPIO 1_3 PHYRST on XM boards
+      writel(0xa, 0x200300cc); // RMII mode
+	  printf("rmii\n");
+    }
+  }
 }
 
 int misc_init_r(void)
 {
-       detect_memory();
+    detect_memory();
 #ifdef CONFIG_RANDOM_ETHADDR
 	random_init_r();
 #endif
 	setenv("verify", "n");
-
+	do_phy_init();
 #ifdef CONFIG_AUTO_UPDATE
 	extern int do_auto_update(void);
 #ifdef CFG_MMU_HANDLEOK
