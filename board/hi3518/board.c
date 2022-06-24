@@ -104,7 +104,7 @@ int board_init(void)
 void detect_memory(void) {
   ulong tested_ram =
       get_ram_size((long *)CFG_DDR_PHYS_OFFSET, CFG_DDR_SIZE) / 1024 / 1024;
-  printf("Detected RAM size: %dMB\n", tested_ram);
+  printf("RAM size: %dMB\n", tested_ram);
 
   char msize[128];
   sprintf(msize, "%dM", tested_ram);
