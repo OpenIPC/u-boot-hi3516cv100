@@ -273,6 +273,8 @@ void env_relocate (void)
 		show_boot_progress (-60);
 #endif
 		set_default_env();
+		env_crc_update();
+		saveenv();
 	}
 	else {
 		env_relocate_spec ();
