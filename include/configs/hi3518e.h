@@ -235,7 +235,7 @@
 #define CONFIG_PL01x_PORTS		{(void *)UART0_REG_BASE}
 #define CONFIG_CONS_INDEX		0
 
-#define CONFIG_PRODUCTNAME              "hi3518c"
+#define CONFIG_PRODUCTNAME              "hi3518e"
 
 /*-----------------------------------------------------------------------
  * sdcard/usb storage system update

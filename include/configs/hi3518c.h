@@ -278,4 +278,6 @@
  * ----------------------------------------------------------------------*/
 /* #define CONFIG_SVB_ENABLE */
 
+#include <configs/hi-common.h>
+
 #endif	/* __CONFIG_H */
