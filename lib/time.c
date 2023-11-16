@@ -41,3 +41,9 @@ void udelay(unsigned long usec)
 		usec -= kv;
 	} while(usec);
 }
+
+void wait_ms(unsigned long msec)
+{
+	while (msec--)
+		udelay(1000);
+}
