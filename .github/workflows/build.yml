@@ -96,10 +96,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Only hi3516cv100 has a QEMU machine in widgetii/qemu-hisilicon
-        # right now. The hi3518a/c/e v100 binaries publish unguarded.
         include:
           - { soc: hi3516cv100, machine: hi3516cv100, flash_type: hisi-sfc350 }
+          - { soc: hi3518av100, machine: hi3518av100, flash_type: hisi-sfc350 }
+          - { soc: hi3518cv100, machine: hi3518cv100, flash_type: hisi-sfc350 }
+          - { soc: hi3518ev100, machine: hi3518ev100, flash_type: hisi-sfc350 }
     steps:
       - name: Install QEMU build deps
         run: |
