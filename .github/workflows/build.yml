@@ -96,11 +96,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # All four V1 SoCs in this repo are now testable: qemu-
-        # hisilicon#78 added hi3518a/c/e v100 as die-identical clones
-        # of cv100 (same ARM926EJ-S, 0x20xxxxxx address map, HISFC350
-        # flash, peripheral layout — disambiguated only by the
-        # SCSYSID0 0x88/0x8C chip-id registers ipctool reads).
         include:
           - { soc: hi3516cv100, machine: hi3516cv100, flash_type: hisi-sfc350 }
           - { soc: hi3518av100, machine: hi3518av100, flash_type: hisi-sfc350 }
