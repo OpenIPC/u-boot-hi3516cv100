@@ -97,10 +97,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { soc: hi3516cv100, machine: hi3516cv100, flash_type: hisi-sfc350 }
-          - { soc: hi3518av100, machine: hi3518av100, flash_type: hisi-sfc350 }
-          - { soc: hi3518cv100, machine: hi3518cv100, flash_type: hisi-sfc350 }
-          - { soc: hi3518ev100, machine: hi3518ev100, flash_type: hisi-sfc350 }
+          - { soc: hi3516cv100, machine: hi3516cv100 }
+          - { soc: hi3518av100, machine: hi3518av100 }
+          - { soc: hi3518cv100, machine: hi3518cv100 }
+          - { soc: hi3518ev100, machine: hi3518ev100 }
     steps:
       - name: Install QEMU build deps
         run: |
@@ -147,11 +147,8 @@ jobs:
           dd if="$UBOOT" of=/tmp/flash.bin bs=1 conv=notrunc 2>/dev/null
           mkfifo /tmp/uart.in /tmp/uart.out
           chmod +x ./qemu-arm
-          # cv100 uses the hisi-sfc350 SPI controller, not the default
-          # hisi-fmc — same as widgetii/qemu-hisilicon's own boot test.
           ./qemu-arm \
-            -M ${{ matrix.machine }} \
-            -global ${{ matrix.flash_type }}.flash-file=/tmp/flash.bin \
+            -M ${{ matrix.machine }},flash-file=/tmp/flash.bin \
             -nographic -serial pipe:/tmp/uart \
             -monitor none > /tmp/qemu.log 2>&1 &
           QEMU_PID=$!
