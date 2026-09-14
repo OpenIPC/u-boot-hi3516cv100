@@ -210,7 +210,11 @@
 #define CFG_CMDLINE_HISTORYS		8
 #define CONFIG_CMDLINE_EDITING
 #define CFG_DDR_PHYS_OFFSET		MEM_BASE_DDR
+#ifdef CONFIG_HI3518EV100_DDR3_256M
+#define CFG_DDR_SIZE			(256 * 1024 * 1024)	/* 256M Bytes */
+#else
 #define CFG_DDR_SIZE			(128 * 1024 * 1024)	/* 128M Bytes */
+#endif
 
 #define CONFIG_SYS_MEMTEST_START	(CFG_DDR_PHYS_OFFSET +\
 						sizeof(unsigned long))

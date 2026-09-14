@@ -3269,6 +3269,9 @@ hi3518c_config: unconfig
 hi3518e_config: unconfig
 	@$(MKCONFIG) hi3518e arm hi3518 hi3518 NULL hi3518
 
+hi3518e_ddr3_256m_config: unconfig
+	@$(MKCONFIG) hi3518e_ddr3_256m arm hi3518 hi3518 NULL hi3518
+
 hi3518ev200_config: unconfig
 	@$(MKCONFIG) $(@:_config=) arm hi3518ev200 hi3518ev200 NULL hi3518ev200
 
