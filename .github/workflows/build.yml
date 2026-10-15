@@ -19,10 +19,10 @@ jobs:
         # u-boot.bin leaves the region zero, so an image without one
         # prints nothing and needs an SPI programmer to recover
         # (OpenIPC/firmware#2593).  Only images with a table are smoke-
-        # tested and published; hi3518av100, without one, still builds.
+        # tested and published.
         include:
           - { name: hi3516cv100, config: hi3516c_config, reg: reg_info_hi3516cv100.bin }
-          - { name: hi3518av100, config: hi3518a_config, reg: "" }
+          - { name: hi3518av100, config: hi3518a_config, reg: reg_info_hi3518av100.bin }
           - { name: hi3518cv100, config: hi3518c_config, reg: reg_info_hi3518cv100.bin }
           - { name: hi3518ev100, config: hi3518e_config, reg: reg_info_hi3518ev100.bin }
 
@@ -130,6 +130,7 @@ jobs:
         # Images with a reg_info table only (see build).
         include:
           - { name: hi3516cv100, machine: hi3516cv100 }
+          - { name: hi3518av100, machine: hi3518av100 }
           - { name: hi3518cv100, machine: hi3518cv100 }
           - { name: hi3518ev100, machine: hi3518ev100 }
     steps:
@@ -224,7 +225,7 @@ jobs:
             done
           }
           # Images with a reg_info table only (see build).
-          for name in hi3516cv100 hi3518cv100 hi3518ev100; do
+          for name in hi3516cv100 hi3518av100 hi3518cv100 hi3518ev100; do
             f="artifacts/u-boot-${name}-universal/u-boot-${name}-universal.bin"
             test -f "$f"
             upload "$f"
