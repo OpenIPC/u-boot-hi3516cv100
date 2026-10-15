@@ -12,13 +12,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 4 V1 SoCs from this repo, each with its own _config target.
-        # No mini-boot wrapper — u-boot.bin is the published artifact.
+        # `name` is the published artifact name, `config` selects the
+        # U-Boot configuration, and `reg` is the 4 KiB reg_info table
+        # written at offset 0x40.  start.S runs that table from flash
+        # before anything else -- PLLs, DDR controller, pin mux -- and
+        # u-boot.bin leaves the region zero, so an image without one
+        # prints nothing and needs an SPI programmer to recover
+        # (OpenIPC/firmware#2593).  Only images with a table are smoke-
+        # tested and published; the three without one still build.
         include:
-          - { soc: hi3516cv100, config: hi3516c_config }
-          - { soc: hi3518av100, config: hi3518a_config }
-          - { soc: hi3518cv100, config: hi3518c_config }
-          - { soc: hi3518ev100, config: hi3518e_config }
+          - { name: hi3516cv100, config: hi3516c_config, reg: reg_info_hi3516cv100.bin }
+          - { name: hi3518av100, config: hi3518a_config, reg: "" }
+          - { name: hi3518cv100, config: hi3518c_config, reg: "" }
+          - { name: hi3518ev100, config: hi3518e_config, reg: "" }
 
     steps:
       - name: Install 32-bit libs
@@ -67,7 +73,32 @@ jobs:
           make CROSS_COMPILE="$CROSS_COMPILE" ${{ matrix.config }}
           # SUBDIRS= skips examples/standalone — only u-boot.bin ships.
           make CROSS_COMPILE="$CROSS_COMPILE" -j$(nproc) SUBDIRS= u-boot.bin
-          cp u-boot.bin u-boot-${{ matrix.soc }}-universal.bin
+
+          FILE="u-boot-${{ matrix.name }}-universal.bin"
+          cp u-boot.bin "$FILE"
+
+          REG="${{ matrix.reg }}"
+          if [ -n "$REG" ]; then
+            test "$(stat -c %s "$REG")" -eq 4096
+            dd if="$REG" of="$FILE" bs=1 seek=64 conv=notrunc status=none
+
+            dd if="$FILE" of=/tmp/reg-info.bin bs=1 skip=64 count=4096 status=none
+            cmp "$REG" /tmp/reg-info.bin
+          fi
+
+      - name: Check reg_info table
+        run: |
+          # The table walker stops at the first all-zero record, so a zero
+          # first record is an empty table however the rest reads.
+          FILE=u-boot-${{ matrix.name }}-universal.bin
+          FIRST=$(od -An -tx4 -j 64 -N 16 "$FILE" | tr -d ' \n')
+          if [ "$FIRST" = "00000000000000000000000000000000" ]; then
+            if [ -n "${{ matrix.reg }}" ]; then
+              echo "::error::$FILE: reg_info table at 0x40 is empty"
+              exit 1
+            fi
+            echo "::warning::$FILE has no reg_info table; it is built but not published"
+          fi
 
       - name: Check partition fit
         run: |
@@ -75,7 +106,7 @@ jobs:
           # across every NOR/NAND/UBI variant. Anything past that
           # overflows into env at offset 0x40000 and bricks the device
           # on upgrade. Mirrors OpenIPC/firmware Makefile CHECK_SIZE.
-          FILE=u-boot-${{ matrix.soc }}-universal.bin
+          FILE=u-boot-${{ matrix.name }}-universal.bin
           LIMIT_KB=256
           SIZE_KB=$(($(stat -c %s "$FILE") / 1024))
           echo "- $FILE: [${SIZE_KB}KB/${LIMIT_KB}KB]"
@@ -87,8 +118,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: u-boot-${{ matrix.soc }}-universal
-          path: u-boot-${{ matrix.soc }}-universal.bin
+          name: u-boot-${{ matrix.name }}-universal
+          path: u-boot-${{ matrix.name }}-universal.bin
 
   qemu_smoke:
     needs: build
@@ -96,11 +127,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Images with a reg_info table only (see build).
         include:
-          - { soc: hi3516cv100, machine: hi3516cv100 }
-          - { soc: hi3518av100, machine: hi3518av100 }
-          - { soc: hi3518cv100, machine: hi3518cv100 }
-          - { soc: hi3518ev100, machine: hi3518ev100 }
+          - { name: hi3516cv100, machine: hi3516cv100 }
     steps:
       - name: Install QEMU build deps
         run: |
@@ -136,12 +165,12 @@ jobs:
       - name: Download u-boot artifact
         uses: actions/download-artifact@v4
         with:
-          name: u-boot-${{ matrix.soc }}-universal
+          name: u-boot-${{ matrix.name }}-universal
 
       - name: Smoke-test in QEMU
         timeout-minutes: 2
         run: |
-          UBOOT="$PWD/u-boot-${{ matrix.soc }}-universal.bin"
+          UBOOT="$PWD/u-boot-${{ matrix.name }}-universal.bin"
           test -f "$UBOOT"
           dd if=/dev/zero of=/tmp/flash.bin bs=1M count=8 2>/dev/null
           dd if="$UBOOT" of=/tmp/flash.bin bs=1 conv=notrunc 2>/dev/null
@@ -192,8 +221,9 @@ jobs:
               sleep $((i*10))
             done
           }
-          for soc in hi3516cv100 hi3518av100 hi3518cv100 hi3518ev100; do
-            f="artifacts/u-boot-${soc}-universal/u-boot-${soc}-universal.bin"
+          # Images with a reg_info table only (see build).
+          for name in hi3516cv100; do
+            f="artifacts/u-boot-${name}-universal/u-boot-${name}-universal.bin"
             test -f "$f"
             upload "$f"
           done
