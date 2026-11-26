@@ -1,28 +1,21 @@
-# u-boot-hi3516cv100
-U-Boot for hi3516cv100 group SoC's
+# Retired: the hi3516cv100 family is built in OpenIPC/u-boot
 
-## reg_info tables
+This repository is archived. U-Boot for Hi3516CV100, Hi3518AV100, Hi3518CV100
+and Hi3518EV100 is now built from the same tree as every other HiSilicon and
+Goke SoC OpenIPC supports: the `openipc-hisilicon` branch of
+[OpenIPC/u-boot](https://github.com/OpenIPC/u-boot/tree/openipc-hisilicon),
+with its CI on the `openipc` branch. Those builds are published as
+`u-boot-hi3516cv100-nor.bin`, `u-boot-hi3518av100-nor.bin`,
+`u-boot-hi3518cv100-nor.bin` and `u-boot-hi3518ev100-nor.bin` in the
+[OpenIPC/firmware `latest`](https://github.com/OpenIPC/firmware/releases/tag/latest)
+release; they find the flash layout at boot, fixed slots or the split NOR
+image (OpenIPC/u-boot#77).
 
-`u-boot.bin` is not flashable on its own. `start.S` reserves 4 KiB at image
-offset 0x40 and, running from flash at reset, walks it as a table of
-`(addr, value, delay, attr)` records: the PLLs, the DDR controller and PHY,
-pin mux. The build leaves that region zero; an image flashed without a table
-never reaches DDR, prints nothing, and needs an SPI programmer to recover
-(OpenIPC/firmware#2593). CI writes `reg_info_<soc>.bin` in at 0x40, refuses
-to publish an image whose table is empty, and publishes only the SoCs listed
-here:
+The U-Boot 2010.06 images this repository built, `u-boot-hi3516cv100-universal.bin`,
+`u-boot-hi3518av100-universal.bin`, `u-boot-hi3518cv100-universal.bin` and
+`u-boot-hi3518ev100-universal.bin`, stay on `latest` as they are: qemu-bench
+CI boots the Hi3516CV100 one, defib still loads the Hi3518AV100 one, and
+cameras in the field run them. They are no longer rebuilt.
 
-Every table is the reference-board `reg_info_<chip>.bin` from HiSilicon's
-Hi3518_SDK_V1.0.B.0 (`osdrv/tools/pc_tools/uboot_tools/`, generated from the
-`uboot-Hi35xx-bvt_No2_*.xlsm` workbooks beside it), zero-padded to 4 KiB as the
-SDK's `mkboot.sh` does.
-
-| SoC | Table | SDK source | Also checked against |
-|---|---|---|---|
-| hi3516cv100 | `reg_info_hi3516cv100.bin` | `reg_info_hi3516c.bin` (440/220/440 MHz) | 0x40..0x1040 of the OpenIPC hi3516cv100 U-Boot built 2022-11-14, read from mtd0 of a Hi3516CV100 + IMX122 board (128 MB DDR) that boots with it: byte-identical |
-| hi3518av100 | `reg_info_hi3518av100.bin` | `reg_info_hi3518a.bin` (440/200/400 MHz) | nothing: OpenIPC had not published a table for it before |
-| hi3518cv100 | `reg_info_hi3518cv100.bin` | `reg_info_hi3518c.bin` (440/200/400 MHz) | OpenIPC/distributor `reg_info_hi3518cv100.reg` (a19c1f7): byte-identical |
-| hi3518ev100 | `reg_info_hi3518ev100.bin` | `reg_info_hi3518e.bin` (440/200/400 MHz, low power) | OpenIPC/distributor `reg_info_hi3518ev100.reg` (a19c1f7): byte-identical |
-
-Older SDK copies of these tables (e.g. the 2014 ones in Hi-Spy/hi_u-boot) write
-some DDR PHY registers at 0x2009xxxx/0x2011xxxx; V1.0.B.0 has them at 0x2012xxxx.
+The upstream U-Boot documentation is in `README`; the history here stays
+readable for reference.
